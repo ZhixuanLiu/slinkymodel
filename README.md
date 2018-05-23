@@ -19,13 +19,19 @@ k(spring) = n * k(slinky)
 
 deformation: 
 top 1st spring: 
+
 Tension = n/(n+1)*m*g , Tension = k(spring) * DeltaL1 , DeltaL1 = m*g/k*(1/(n+1)) 
+
 top 2nd spring: 
+
 Tension = (n-1)/(n+1)*m*g , Tension = k(spring) * DeltaL1 , DeltaL2 = m*g/k*(1/(n+1)) * (n-1)/n 
+
 top 3rd spring: 
+
 Tension = (n-2)/(n+1)*m*g , Tension = k(spring) * DeltaL1 , DeltaL3 = m*g/k*(1/(n+1)) * (n-2)/n
 ...
 top i th spring: 
+
 Tension = (n-(i-1))/(n+1)*m*g , Tension = k(spring) * DeltaL1 , DeltaLi = m*g/k*(1/(n+1)) * (n-(i-1))/n 
 
 Sumoflength = DeltaL1 + DeltaL2 ....  = 1/2 * m*g/k
