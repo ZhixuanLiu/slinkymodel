@@ -6,38 +6,82 @@ Created on Tue May 22 15:31:46 2018
 """
 
 import math 
+import numpy as np 
+import matplotlib.pyplot as plt 
 
-def time_calculation(n_point):   
-    # initialize parameter
-    mass = 0.1          #kg 
-    n_spring = n_point              # number of springs
-    n_ball = n_spring +1        # divided into n ball 
-    g = 9.8             # m/s/s
-    k = 1               #hook factor    
-    t_l = []
-    v_start = 0.0
-    for i in range(n_spring): 
-        n = i+1
-        delta_l = (n_spring-i)*mass*g/k/(n_spring*n_ball)
-        # gravity energy 
-        E_g = (n/(n_ball)*mass*g*delta_l)
-        # spring energy 
-        E_s = (0.5*k*delta_l*delta_l)
-        # energy increament
-        delta_E = (E_g + E_s) 
-        # velocity of ball before hitting the next ball 
-        v_hit = (math.sqrt( v_start*v_start + 2*delta_E/(n/n_ball*mass)))  
-        t_l.append(delta_l/v_hit*2)
-        v_after = (1.00* n/(n+1)*v_hit)
-        v_start = v_after
-#        print (delta_l)
+def factor_matrix(N):
+    factor = -2 * np.eye(N) + np.eye(N,k=1) + np.eye(N,k=-1)
+    factor[0][0] = -1    
+    factor[N-1][N-1] = -1
+    factor[N-1][N-2] = 1
+    return factor
 
-    return (sum(t_l))
+import pandas as pd 
+#def motion_monitor(N,time):
+    #initialize parameter
+N = 38
+mass = 0.048  #kg 
+n_spring = N      # number of springs
+n_ball = n_spring +1# divided into n ball 
+g = 9.8     # m/s/s
+k = 0.22       #hook factor   
+springl = []
+position = []
 
-result_i = []
-result_t = []
-for i in range(50): 
-    n = (i+1)*2000
-    result_i.append(n)
-    result_t.append(time_calculation(n))
-    print ("i = %d, time = %.5f"%(n,time_calculation(n)))
+x=np.zeros(N+1)
+factor = factor_matrix(N+1)       # factor matrix 
+# spring extension length 
+for i in range(N):
+    springl.append((n_spring-i)*mass*g/k/(n_spring*n_ball))
+# calculate ball position 
+for i in range(N+1):
+    position.append(sum(springl[:i]))
+print ("original length of spring %f"%position[N])
+    
+time = 0.5  # second
+deltaT = 0.00001
+topballposition = []
+bottomballposition = []
+acceleratelist = []
+timelist = [] 
+v_after_list = []
+distance_list = []
+position_list = []
+velocity_before = np.zeros(N+1)
+time_four = np.zeros(5)
+for i in range(30000):
+    # accelerate
+    accelerate =  (N+1)*N*k/mass*np.dot(factor,position) + g 
+    acceleratetemp = [accelerate[0], accelerate[int(N/4)],accelerate[int(N/2)],accelerate[int(N*3/4)],accelerate[N]]
+    acceleratetemp = [accelerate[0],accelerate[1]]
+    acceleratelist.append(acceleratetemp)
+    # velocity  
+    velocity_after = velocity_before + deltaT * accelerate  
+    v_aftertemp = [velocity_after[0],velocity_after[int(N/4)], velocity_after[int(N/2)], velocity_after[int(N*3/4)], velocity_after[N]]
+    v_aftertemp = [velocity_after[0],velocity_after[1]]
+    v_after_list.append(v_aftertemp)
+    # distance 
+    distance = velocity_before*deltaT + 0.5* accelerate*deltaT*deltaT
+    acceleratetemp = [distance[0],distance[int(N/4)],distance[int(N/2)],distance[int(3/4*N)],distance[int(N)]]
+    distance_list.append(acceleratetemp)
+    #position 
+    position = position + distance    
+    positiontemp = [position[int(0)],position[int(N/4)],position[int(N/2)],position[int(N*3/4)],position[int(N)]]
+    positiontemp = [position[int(0)],position[1]]
+    position_list.append(positiontemp)
+    velocity_before = velocity_after
+
+    x = x + 0.01
+    
+#    print ("i=%d,distance=%f"%(i,accelerate[-1]))
+    timelist.append(deltaT*(i+1))
+#    plt.pause(0.01)
+accelerate_pd = pd.DataFrame(position_list,index = timelist)
+
+accelerate_pd.plot()
+#accelerate_pd.to_csv('./velocity')
+
+
+plt.ylabel('N=%d'%N)
+plt.grid(True)
+
